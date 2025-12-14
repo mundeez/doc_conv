@@ -11,6 +11,7 @@ urlpatterns = [
     # Status & download by task id (use UUIDs for async operations)
     path("status/<uuid:task_id>/", views.status, name="status"),
     path("download/<uuid:task_id>/", views.download_docx, name="download"),
+    path("list/", views.list_conversions, name="list"),
 
     # API endpoints (optional)
     path("api/upload/", views.api_upload, name="api_upload"),

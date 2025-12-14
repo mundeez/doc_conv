@@ -26,6 +26,8 @@ class ConversionTask(models.Model):
 	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
 	result_file = models.FileField(upload_to='exports/', null=True, blank=True)
 	error_message = models.TextField(blank=True)
+	original_filename = models.CharField(max_length=255, blank=True)
+	progress = models.IntegerField(default=0)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 

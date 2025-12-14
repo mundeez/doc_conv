@@ -8,12 +8,18 @@
   {% if task is mapping %}
     <p>Task id: <strong>{{ task.task_id }}</strong></p>
     <p>Status: <strong>{{ task.status }}</strong></p>
+    <div style="width:100%; background:#eee; height:14px; border-radius:4px; overflow:hidden">
+      <div style="width:{{ task.progress|default:0 }}%; height:100%; background:linear-gradient(90deg,#4caf50,#8bc34a);"></div>
+    </div>
     {% if task.download_url %}
       <p><a href="{{ task.download_url }}">Download result</a></p>
     {% endif %}
   {% else %}
     <p>Task id: <strong>{{ task.id }}</strong></p>
     <p>Status: <strong>{{ task.status }}</strong></p>
+    <div style="width:100%; background:#eee; height:14px; border-radius:4px; overflow:hidden">
+      <div style="width:{{ task.progress|default:0 }}%; height:100%; background:linear-gradient(90deg,#4caf50,#8bc34a);"></div>
+    </div>
     {% if task.result_file %}
       <p><a href="{% url 'md2docx:download' task.id %}">Download result</a></p>
     {% else %}

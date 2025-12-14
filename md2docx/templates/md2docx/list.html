@@ -1,0 +1,53 @@
+{% extends "md2docx/base.html" %}
+
+{% block title %}Converted files — md2docx{% endblock %}
+
+{% block content %}
+  <h2>Converted files</h2>
+
+  <form method="get" style="margin-bottom:12px">
+    <label>Results per page:
+      <select name="per_page" onchange="this.form.submit()">
+  <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+  <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+  <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+      </select>
+    </label>
+  </form>
+
+  <table style="width:100%; border-collapse: collapse;">
+    <thead>
+      <tr>
+        <th style="text-align:left; padding:8px">Filename</th>
+        <th style="text-align:left; padding:8px">Original name</th>
+        <th style="text-align:left; padding:8px">Updated</th>
+        <th style="text-align:left; padding:8px">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for task in page_obj.object_list %}
+      <tr style="border-top:1px solid #eee">
+  <td style="padding:8px">{{ task.result_file.name|default:"(none)" }}</td>
+        <td style="padding:8px">{{ task.original_filename|default:"(uploaded)" }}</td>
+        <td style="padding:8px">{{ task.updated_at }}</td>
+        <td style="padding:8px">
+          <a href="{% url 'md2docx:download' task.id %}">Download</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">No converted files found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div style="margin-top:12px">
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">Prev</a>
+    {% endif %}
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">Next</a>
+    {% endif %}
+  </div>
+
+{% endblock %}
