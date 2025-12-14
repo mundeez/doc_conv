@@ -7,6 +7,7 @@ from django.http import FileResponse, Http404, JsonResponse, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from .views_list_and_api import list_conversions
 from .models import ConversionTask
 
@@ -148,6 +149,7 @@ def download_docx(request, task_id):
 
 
 @require_http_methods(["POST"])
+@csrf_exempt
 def api_upload(request):
     """
     API endpoint for programmatic uploads. Accepts multipart form upload with key 'file'
