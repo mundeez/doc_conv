@@ -1,0 +1,16 @@
+{% extends "md2docx/base.html" %}
+
+{% block title %}Conversion started — md2docx{% endblock %}
+
+{% block content %}
+  <h2>Conversion started</h2>
+  <p>Task id: <strong>{{ task_id|default:task }}</strong></p>
+  <p class="muted">Conversion runs asynchronously. Poll the status URL to check progress.</p>
+
+  {% if task_id %}
+    <p>Check status: <a href="{% url 'md2docx:status' task_id %}">{% url 'md2docx:status' task_id %}</a></p>
+  {% elif task %}
+    <p>Check status: <a href="{% url 'md2docx:status' task.id %}">{% url 'md2docx:status' task.id %}</a></p>
+  {% endif %}
+
+{% endblock %}

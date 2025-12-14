@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{% block title %}md2docx{% endblock %}</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; margin: 0; padding: 0; }
+      header, footer { background:#f7f7f7; padding: 12px 20px; }
+      main { padding: 20px; }
+      .container { max-width: 900px; margin: 0 auto; }
+      textarea { width:100%; font-family: monospace; }
+      .muted { color:#666; font-size:0.9rem }
+    </style>
+  </head>
+  <body>
+    {% include "md2docx/partials/header.html" %}
+    <main class="container">
+      {% block content %}{% endblock %}
+    </main>
+    {% include "md2docx/partials/footer.html" %}
+  </body>
+</html>

@@ -3,7 +3,7 @@ import os
 import uuid
 from pathlib import Path
 from django.conf import settings
-from django.http import FileResponse, Http404, JsonResponse
+from django.http import FileResponse, Http404, JsonResponse, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
@@ -27,7 +27,7 @@ def home(request):
     return a very small HTML response linking to the convert endpoint.
     """
     try:
-        return render(request, "md2docx/home.html", {"convert_url": reverse("md2docx:convert_markdown")})
+        return render(request, "md2docx/home.html", {"convert_url": reverse("md2docx:convert")})
     except Exception:
         # Fallback minimal HTML so server is runnable without templates
         html = f"""

@@ -1,0 +1,27 @@
+{% extends "md2docx/base.html" %}
+
+{% block title %}Home — md2docx{% endblock %}
+
+{% block content %}
+  <h2>Convert Markdown to DOCX</h2>
+  <p class="muted">Paste Markdown or upload a .md file. The conversion runs asynchronously (this demo enqueues a pending task).</p>
+
+  <form action="{{ convert_url }}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label for="markdown">Markdown text</label>
+    <textarea id="markdown" name="markdown" rows="12"></textarea>
+
+    <div style="margin-top:10px">
+      <label for="file">Or upload a .md file</label>
+      <input type="file" id="file" name="file" accept=".md,text/markdown">
+    </div>
+
+    <div style="margin-top:12px">
+      <button type="submit">Convert</button>
+    </div>
+  </form>
+
+  <hr />
+  <p class="muted">Programmatic API: POST to <code>{% url 'md2docx:api_upload' %}</code> with multipart file or form field <code>markdown</code>.</p>
+
+{% endblock %}
