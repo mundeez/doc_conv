@@ -82,9 +82,10 @@ def process_conversion_on_create(sender, instance, created, **kwargs):
     Note: Skips processing during tests to avoid SQLite locking issues.
     """
     from django.conf import settings
-    
+
     # Skip signal processing in test environment
-    if 'test' in settings.DATABASES.get('default', {}).get('NAME', ''):
+    db_name = settings.DATABASES.get('default', {}).get('NAME', '')
+    if isinstance(db_name, (Path, str)) and 'test' in str(db_name):
         return
     
     if created and instance.status == ConversionTask.STATUS_PENDING:
