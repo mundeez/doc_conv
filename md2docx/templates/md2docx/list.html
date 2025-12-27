@@ -3,50 +3,53 @@
 {% block title %}Converted files — md2docx{% endblock %}
 
 {% block content %}
-  <h2>Converted files</h2>
-
-  <form method="get" style="margin-bottom:12px">
-    <label>Results per page:
-      <select name="per_page" onchange="this.form.submit()">
-  <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
-  <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
-  <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+  <div class="flex-between" style="gap:12px; margin-bottom:10px;">
+    <div>
+      <h2 style="margin:0 0 4px;">Converted files</h2>
+      <p class="muted" style="margin:0;">Browse completed conversions and download results.</p>
+    </div>
+    <form method="get" style="display:flex; align-items:center; gap:8px;">
+      <label class="muted" style="margin:0;">Per page</label>
+      <select name="per_page" onchange="this.form.submit()" style="width:auto;">
+        <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+        <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+        <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
       </select>
-    </label>
-  </form>
+    </form>
+  </div>
 
-  <table style="width:100%; border-collapse: collapse;">
+  <table class="table">
     <thead>
       <tr>
-        <th style="text-align:left; padding:8px">Filename</th>
-        <th style="text-align:left; padding:8px">Original name</th>
-        <th style="text-align:left; padding:8px">Updated</th>
-        <th style="text-align:left; padding:8px">Actions</th>
+        <th>Filename</th>
+        <th>Original name</th>
+        <th>Updated</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for task in page_obj.object_list %}
-      <tr style="border-top:1px solid #eee">
-  <td style="padding:8px">{{ task.result_file.name|default:"(none)" }}</td>
-        <td style="padding:8px">{{ task.original_filename|default:"(uploaded)" }}</td>
-        <td style="padding:8px">{{ task.updated_at }}</td>
-        <td style="padding:8px">
-          <a href="{% url 'md2docx:download' task.id %}">Download</a>
+      <tr>
+        <td>{{ task.result_file.name|default:"(none)" }}</td>
+        <td>{{ task.original_filename|default:"(uploaded)" }}</td>
+        <td>{{ task.updated_at }}</td>
+        <td>
+          <a class="btn btn-secondary" style="padding:6px 12px; border-radius:8px;" href="{% url 'md2docx:download' task.id %}">Download</a>
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="4">No converted files found.</td></tr>
+      <tr><td colspan="4" class="muted" style="text-align:center; padding:16px;">No converted files found.</td></tr>
       {% endfor %}
     </tbody>
   </table>
 
-  <div style="margin-top:12px">
-    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+  <div class="pagination">
+    <span class="muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
     {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">Prev</a>
+      <a class="btn btn-secondary" href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">Prev</a>
     {% endif %}
     {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">Next</a>
+      <a class="btn btn-secondary" href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">Next</a>
     {% endif %}
   </div>
 

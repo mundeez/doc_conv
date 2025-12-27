@@ -3,28 +3,36 @@
 {% block title %}Status — md2docx{% endblock %}
 
 {% block content %}
-  <h2>Conversion status</h2>
+  <div class="card stack" style="gap:12px;">
+    <div class="flex-between" style="gap:10px;">
+      <div>
+        <h2 style="margin:0 0 4px;">Conversion status</h2>
+        <p class="muted" style="margin:0;">Keep this page open; it updates as the task progresses.</p>
+      </div>
+      <span class="pill">Live status</span>
+    </div>
 
-  {% if task is mapping %}
-    <p>Task id: <strong>{{ task.task_id }}</strong></p>
-    <p>Status: <strong>{{ task.status }}</strong></p>
-    <div style="width:100%; background:#eee; height:14px; border-radius:4px; overflow:hidden">
-      <div style="width:{{ task.progress|default:0 }}%; height:100%; background:linear-gradient(90deg,#4caf50,#8bc34a);"></div>
-    </div>
-    {% if task.download_url %}
-      <p><a href="{{ task.download_url }}">Download result</a></p>
-    {% endif %}
-  {% else %}
-    <p>Task id: <strong>{{ task.id }}</strong></p>
-    <p>Status: <strong>{{ task.status }}</strong></p>
-    <div style="width:100%; background:#eee; height:14px; border-radius:4px; overflow:hidden">
-      <div style="width:{{ task.progress|default:0 }}%; height:100%; background:linear-gradient(90deg,#4caf50,#8bc34a);"></div>
-    </div>
-    {% if task.result_file %}
-      <p><a href="{% url 'md2docx:download' task.id %}">Download result</a></p>
+    {% if task is mapping %}
+      <p style="margin:0;">Task id: <strong>{{ task.task_id }}</strong></p>
+      <p style="margin:0;">Status: <strong>{{ task.status }}</strong></p>
+      <div class="progress-outer">
+        <div class="progress-inner" style="width:{{ task.progress|default:0 }}%;"></div>
+      </div>
+      {% if task.download_url %}
+        <a class="btn btn-primary" style="width:max-content;" href="{{ task.download_url }}">Download result</a>
+      {% endif %}
     {% else %}
-      <p class="muted">Result not available yet. Poll this page or use the API status endpoint.</p>
+      <p style="margin:0;">Task id: <strong>{{ task.id }}</strong></p>
+      <p style="margin:0;">Status: <strong>{{ task.status }}</strong></p>
+      <div class="progress-outer">
+        <div class="progress-inner" style="width:{{ task.progress|default:0 }}%;"></div>
+      </div>
+      {% if task.result_file %}
+        <a class="btn btn-primary" style="width:max-content;" href="{% url 'md2docx:download' task.id %}">Download result</a>
+      {% else %}
+        <p class="muted">Result not available yet. Poll this page or use the API status endpoint.</p>
+      {% endif %}
     {% endif %}
-  {% endif %}
+  </div>
 
 {% endblock %}

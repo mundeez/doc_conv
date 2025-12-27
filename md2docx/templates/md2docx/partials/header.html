@@ -1,9 +1,16 @@
 <header>
-  <div class="container">
-    <h1 style="margin:0;">md2docx</h1>
-    <nav style="margin-top:6px;">
-      <a href="{% url 'md2docx:home' %}">Home</a> •
+  <div class="container flex-between" style="padding:14px 0;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#3b82f6,#2563eb);"></div>
+      <div>
+        <div style="font-size:1.15rem; font-weight:800; letter-spacing:-0.2px;">md2docx</div>
+        <div class="muted" style="margin-top:2px; font-size:0.95rem;">Markdown → DOCX converter</div>
+      </div>
+    </div>
+    <nav style="display:flex; gap:14px; font-weight:600;">
+      <a href="{% url 'md2docx:home' %}">Home</a>
       <a href="{% url 'md2docx:convert' %}">Convert</a>
+      <a href="{% url 'md2docx:list' %}">Results</a>
     </nav>
   </div>
 </header>

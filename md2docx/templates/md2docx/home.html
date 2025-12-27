@@ -3,25 +3,52 @@
 {% block title %}Home — md2docx{% endblock %}
 
 {% block content %}
-  <h2>Convert Markdown to DOCX</h2>
-  <p class="muted">Paste Markdown or upload a .md file. The conversion runs asynchronously (this demo enqueues a pending task).</p>
-
-  <form action="{{ convert_url }}" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <label for="markdown">Markdown text</label>
-    <textarea id="markdown" name="markdown" rows="12"></textarea>
-
-    <div style="margin-top:10px">
-      <label for="file">Or upload a .md file</label>
-      <input type="file" id="file" name="file" accept=".md,text/markdown">
+  <div class="stack">
+    <div class="flex-between" style="gap:12px;">
+      <div>
+        <h2 style="margin:0 0 4px;">Convert Markdown to DOCX</h2>
+        <p class="muted" style="margin:0;">Upload a <code>.md</code> file or paste text. We’ll queue the job and return a download link when ready.</p>
+      </div>
+      <span class="pill">Async conversion</span>
     </div>
 
-    <div style="margin-top:12px">
-      <button type="submit">Convert</button>
-    </div>
-  </form>
+    <div class="grid-2">
+      <div class="card">
+        <form action="{{ convert_url }}" method="post" enctype="multipart/form-data" class="stack" style="gap:14px;">
+          {% csrf_token %}
 
-  <hr />
-  <p class="muted">Programmatic API: POST to <code>{% url 'md2docx:api_upload' %}</code> with multipart file or form field <code>markdown</code>.</p>
+          <div>
+            <label for="markdown">Markdown text</label>
+            <textarea id="markdown" name="markdown" rows="12" placeholder="# Hello world\n\nWrite markdown here..."></textarea>
+          </div>
+
+          <div>
+            <label for="file">Or upload a .md file</label>
+            <input type="file" id="file" name="file" accept=".md,text/markdown">
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:center;">
+            <button class="btn btn-primary" type="submit">Convert</button>
+            <span class="muted">You’ll get a task ID plus status & download URLs.</span>
+          </div>
+        </form>
+      </div>
+
+      <div class="card" style="background:linear-gradient(180deg,#f8fafc,#ffffff);">
+        <h3 style="margin-top:0; margin-bottom:8px;">API quick start</h3>
+        <p class="muted" style="margin-top:0;">POST multipart to <code>{% url 'md2docx:api_upload' %}</code> with either <code>file</code> or <code>markdown</code>.</p>
+        <pre style="background:#0f172a; color:#e5e7eb; padding:12px 14px; border-radius:10px; overflow:auto; font-size:0.9rem; line-height:1.45;">
+curl -X POST {{ request.scheme }}://{{ request.get_host }}{% url 'md2docx:api_upload' %} \
+  -F "file=@example.md"
+        </pre>
+        <p class="muted" style="margin:10px 0 4px;">Need to see progress?</p>
+        <ul style="margin:0; padding-left:18px; color:#0f172a;">
+          <li>Poll status: <code>/md2docx/status/&lt;task_id&gt;/</code></li>
+          <li>Download: <code>/md2docx/download/&lt;task_id&gt;/</code></li>
+          <li>Browse results: <a href="{% url 'md2docx:list' %}">Results list</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
 
 {% endblock %}

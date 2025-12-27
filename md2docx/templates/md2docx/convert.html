@@ -3,14 +3,24 @@
 {% block title %}Conversion started — md2docx{% endblock %}
 
 {% block content %}
-  <h2>Conversion started</h2>
-  <p>Task id: <strong>{{ task_id|default:task }}</strong></p>
-  <p class="muted">Conversion runs asynchronously. Poll the status URL to check progress.</p>
+  <div class="card stack" style="gap:10px;">
+    <div class="flex-between" style="gap:12px;">
+      <div>
+        <h2 style="margin:0 0 4px;">Conversion started</h2>
+        <p class="muted" style="margin:0;">We queued your markdown; check status to download when ready.</p>
+      </div>
+      <span class="pill">Queued</span>
+    </div>
 
-  {% if task_id %}
-    <p>Check status: <a href="{% url 'md2docx:status' task_id %}">{% url 'md2docx:status' task_id %}</a></p>
-  {% elif task %}
-    <p>Check status: <a href="{% url 'md2docx:status' task.id %}">{% url 'md2docx:status' task.id %}</a></p>
-  {% endif %}
+    <p style="margin:0;">Task id: <strong>{{ task_id|default:task }}</strong></p>
+
+    {% if task_id %}
+      <a class="btn btn-primary" style="width:max-content;" href="{% url 'md2docx:status' task_id %}">View status</a>
+    {% elif task %}
+      <a class="btn btn-primary" style="width:max-content;" href="{% url 'md2docx:status' task.id %}">View status</a>
+    {% endif %}
+
+    <p class="muted" style="margin:6px 0 0;">You can revisit this page anytime with the task id to check progress or download.</p>
+  </div>
 
 {% endblock %}
