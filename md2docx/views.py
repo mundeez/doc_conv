@@ -87,16 +87,19 @@ def convert_markdown(request):
         task.progress = 0
         task.save()
 
-    # Return immediate response with task id and endpoints so a worker can pick it up.
-    status_payload = {
-        "status": task.status,
+    # Build links for the confirmation page
+    status_url = reverse("md2docx:status", args=[task.id])
+    download_url = reverse("md2docx:download", args=[task.id])
+
+    context = {
+        "task": task,
         "task_id": str(task.id),
-        "saved_input": saved_path,
-        "status_url": reverse("md2docx:status", args=[task.id]),
-        "download_url": reverse("md2docx:download", args=[task.id]),
+        "status_url": status_url,
+        "download_url": download_url,
     }
 
-    return JsonResponse(status_payload, status=202)
+    # Render an HTML confirmation page instead of JSON so users get clickable links
+    return render(request, "md2docx/convert.html", context, status=202)
 
 
 def status(request, task_id):

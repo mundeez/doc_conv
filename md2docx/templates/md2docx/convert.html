@@ -16,11 +16,19 @@
 
     {% if task_id %}
       <a class="btn btn-primary" style="width:max-content;" href="{% url 'md2docx:status' task_id %}">View status</a>
+      <div class="muted" style="margin-top:10px;">
+        <div>Status URL: <code>{% url 'md2docx:status' task_id %}</code></div>
+        <div>Download URL: <code>{% url 'md2docx:download' task_id %}</code></div>
+      </div>
     {% elif task %}
       <a class="btn btn-primary" style="width:max-content;" href="{% url 'md2docx:status' task.id %}">View status</a>
+      <div class="muted" style="margin-top:10px;">
+        <div>Status URL: <code>{% url 'md2docx:status' task.id %}</code></div>
+        <div>Download URL: <code>{% url 'md2docx:download' task.id %}</code></div>
+      </div>
     {% endif %}
 
-    <p class="muted" style="margin:6px 0 0;">You can revisit this page anytime with the task id to check progress or download.</p>
+    <p class="muted" style="margin:6px 0 0;">Keep these links; status will reach 100% when ready, then download will succeed.</p>
   </div>
 
 {% endblock %}
