@@ -15,16 +15,16 @@
     <p style="margin:0;">Task id: <strong>{{ task_id|default:task }}</strong></p>
 
     {% if task_id %}
-      <a class="btn btn-primary" style="width:max-content;" href="{% url 'md2docx:status' task_id %}">View status</a>
+      <a class="btn btn-primary" style="width:max-content;" href="{% url 'md2docx:status' task_id %}?format=html">View status</a>
       <div class="muted" style="margin-top:10px;">
-        <div>Status URL: <code>{% url 'md2docx:status' task_id %}</code></div>
-        <div>Download URL: <code>{% url 'md2docx:download' task_id %}</code></div>
+          <div>Status URL: <code>{% url 'md2docx:status' task_id %}?format=html</code></div>
+          <div>Download URL: <code>{% url 'md2docx:download' task_id %}</code></div>
       </div>
     {% elif task %}
-      <a class="btn btn-primary" style="width:max-content;" href="{% url 'md2docx:status' task.id %}">View status</a>
+      <a class="btn btn-primary" style="width:max-content;" href="{% url 'md2docx:status' task.id %}?format=html">View status</a>
       <div class="muted" style="margin-top:10px;">
-        <div>Status URL: <code>{% url 'md2docx:status' task.id %}</code></div>
-        <div>Download URL: <code>{% url 'md2docx:download' task.id %}</code></div>
+          <div>Status URL: <code>{% url 'md2docx:status' task.id %}?format=html</code></div>
+          <div>Download URL: <code>{% url 'md2docx:download' task.id %}</code></div>
       </div>
     {% endif %}
 

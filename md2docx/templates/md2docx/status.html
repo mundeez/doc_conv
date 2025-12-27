@@ -9,7 +9,15 @@
         <h2 style="margin:0 0 4px;">Conversion status</h2>
         <p class="muted" style="margin:0;">Keep this page open; it updates as the task progresses.</p>
       </div>
-      <span class="pill">Live status</span>
+      {% with task.status|lower as st %}
+        {% if st == 'done' %}
+          <span class="pill" style="background:#dcfce7; color:#166534;">Done</span>
+        {% elif st == 'failed' %}
+          <span class="pill" style="background:#fee2e2; color:#991b1b;">Failed</span>
+        {% else %}
+          <span class="pill">Live status</span>
+        {% endif %}
+      {% endwith %}
     </div>
 
     {% if task is mapping %}
@@ -20,6 +28,12 @@
       </div>
       {% if task.download_url %}
         <a class="btn btn-primary" style="width:max-content;" href="{{ task.download_url }}">Download result</a>
+        <div class="muted" style="margin-top:10px;">
+          <div>Status URL: <code>{{ status_url }}</code></div>
+          <div>Download URL: <code>{{ task.download_url }}</code></div>
+        </div>
+      {% else %}
+        <p class="muted" style="margin-top:6px;">Result not available yet. This will update when conversion finishes.</p>
       {% endif %}
     {% else %}
       <p style="margin:0;">Task id: <strong>{{ task.id }}</strong></p>
@@ -29,8 +43,17 @@
       </div>
       {% if task.result_file %}
         <a class="btn btn-primary" style="width:max-content;" href="{% url 'md2docx:download' task.id %}">Download result</a>
+        <div class="muted" style="margin-top:10px;">
+          <div>Status URL: <code>{{ status_url }}</code></div>
+          <div>Download URL: <code>{% url 'md2docx:download' task.id %}</code></div>
+        </div>
       {% else %}
         <p class="muted">Result not available yet. Poll this page or use the API status endpoint.</p>
+      {% endif %}
+      {% if error_message %}
+        <div style="padding:10px 12px; border:1px solid #fecdd3; background:#fff1f2; color:#9f1239; border-radius:10px; margin-top:10px;">
+          <strong>Error:</strong> {{ error_message }}
+        </div>
       {% endif %}
     {% endif %}
   </div>

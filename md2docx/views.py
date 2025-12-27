@@ -111,11 +111,12 @@ def status(request, task_id):
     try:
         task = ConversionTask.objects.get(pk=task_id)
     except ConversionTask.DoesNotExist:
-        # fall back to file-based check
         docx_path = EXPORTS_DIR / f"{task_id}.docx"
         if docx_path.exists():
-            return JsonResponse({"status": "finished", "task_id": str(task_id), "download_url": reverse("md2docx:download", args=[task_id])})
-        return JsonResponse({"status": "pending", "task_id": str(task_id)})
+            payload = {"status": "done", "task_id": str(task_id), "download_url": reverse("md2docx:download", args=[task_id])}
+        else:
+            payload = {"status": "pending", "task_id": str(task_id)}
+        return JsonResponse(payload)
 
     payload = {
         "status": task.status,
@@ -127,7 +128,20 @@ def status(request, task_id):
         payload["download_url"] = reverse("md2docx:download", args=[task.id])
     if task.status == ConversionTask.STATUS_FAILED:
         payload["error"] = task.error_message
-    return JsonResponse(payload)
+
+    # Response type: default to JSON (backward compatible). Render HTML when explicitly requested.
+    wants_html = request.GET.get("format") == "html"
+    if not wants_html:
+        return JsonResponse(payload)
+
+    context = {
+        "task": task,
+        "task_id": str(task.id),
+        "status_url": reverse("md2docx:status", args=[task.id]) + "?format=html",
+        "download_url": payload.get("download_url"),
+        "error_message": payload.get("error"),
+    }
+    return render(request, "md2docx/status.html", context)
 
 
 def download_docx(request, task_id):
