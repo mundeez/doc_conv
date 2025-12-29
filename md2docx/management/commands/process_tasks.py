@@ -76,9 +76,27 @@ class Command(BaseCommand):
                     task.progress = 20
                     task.save()
 
-                    output_fmt = (task.output_format or DEFAULT_OUTPUT).lstrip('.')
-                    cmd = f"pandoc -o {output_path} -f {reader} -t {output_fmt} {input_path}"
-                    proc = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                    output_fmt = (task.output_format or DEFAULT_OUTPUT).lstrip('.').lower()
+
+                    def _pandoc_command(inp, outp, reader_name, fmt):
+                        cmd = [
+                            'pandoc',
+                            '-o', str(outp),
+                            '-f', reader_name,
+                            '-t', fmt,
+                            str(inp),
+                        ]
+                        if fmt == 'pdf':
+                            cmd.extend([
+                                '--pdf-engine=xelatex',
+                                '-V', 'mainfont=DejaVu Sans',
+                                '-V', 'sansfont=DejaVu Sans',
+                                '-V', 'monofont=DejaVu Sans Mono',
+                            ])
+                        return cmd
+
+                    cmd = _pandoc_command(input_path, output_path, reader, output_fmt)
+                    proc = subprocess.run(cmd, capture_output=True, text=True)
 
                     if proc.returncode == 0 and output_path.exists():
                         # attach file path to model (relative to MEDIA_ROOT)
