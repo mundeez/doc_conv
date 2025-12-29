@@ -10,6 +10,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from django.views.decorators.csrf import csrf_exempt
 from .views_list_and_api import list_conversions
 from .models import ConversionTask
+from .formats import SUPPORTED_OUTPUTS, allowed_outputs as get_allowed_outputs
 
 # Create your views here.
 # Minimal, importable view stubs for md2docx.urls
@@ -30,7 +31,11 @@ def home(request):
     return a very small HTML response linking to the convert endpoint.
     """
     try:
-        return render(request, "md2docx/home.html", {"convert_url": reverse("md2docx:convert")})
+        return render(request, "md2docx/home.html", {
+            "convert_url": reverse("md2docx:convert"),
+            "supported_outputs": SUPPORTED_OUTPUTS,
+            "default_outputs": get_allowed_outputs('md'),
+        })
     except Exception:
         # Fallback minimal HTML so server is runnable without templates
         html = f"""
@@ -58,27 +63,53 @@ def convert_markdown(request):
     """
     if request.method == "GET":
         # Simple form for manual testing / browser use
-        return home(request)
+        return render(request, "md2docx/convert.html", {"allowed_outputs": SUPPORTED_OUTPUTS.get('md')})
 
     # POST: create a DB-backed ConversionTask and enqueue it for background processing.
-    task = ConversionTask.objects.create(status=ConversionTask.STATUS_PENDING)
-
     uploaded = request.FILES.get("file")
+    markdown_text = request.POST.get("markdown", "")
+
+    if not uploaded and not markdown_text:
+        return render(request, "md2docx/convert.html", {
+            "error": "Please provide a file or paste markdown.",
+            "allowed_outputs": SUPPORTED_OUTPUTS.get('md'),
+            "task": None,
+            "task_id": None,
+        }, status=400)
+
+    original_name = getattr(uploaded, 'name', '') if uploaded else ''
+    input_ext = ''
+    if uploaded and '.' in original_name:
+        input_ext = original_name.rsplit('.', 1)[-1].lower()
+    elif uploaded:
+        input_ext = ''
+    else:
+        input_ext = 'md'
+
+    allowed_outputs = get_allowed_outputs(input_ext)
+    chosen_output = request.POST.get('output_format', 'docx').lower()
+    if chosen_output not in allowed_outputs:
+        return render(request, "md2docx/convert.html", {
+            "error": f"Unsupported output format '{chosen_output}' for input type '{input_ext or 'unknown'}'.",
+            "allowed_outputs": allowed_outputs,
+            "task": None,
+            "task_id": None,
+        }, status=400)
+
+    task = ConversionTask.objects.create(status=ConversionTask.STATUS_PENDING, output_format=chosen_output)
+
+    dest_ext = input_ext or 'md'
     saved_path = None
-    original_name = ""
     if uploaded:
-        original_name = getattr(uploaded, 'name', '')
-        dest = UPLOADS_DIR / f"{task.id}.md"
+        dest = UPLOADS_DIR / f"{task.id}.{dest_ext}"
         with dest.open("wb") as fh:
             for chunk in uploaded.chunks():
                 fh.write(chunk)
         saved_path = str(dest)
     else:
-        markdown_text = request.POST.get("markdown", "")
-        if markdown_text:
-            dest = UPLOADS_DIR / f"{task.id}.md"
-            dest.write_text(markdown_text, encoding="utf-8")
-            saved_path = str(dest)
+        dest = UPLOADS_DIR / f"{task.id}.{dest_ext}"
+        dest.write_text(markdown_text, encoding="utf-8")
+        saved_path = str(dest)
 
     # persist metadata
     if saved_path:
@@ -96,9 +127,11 @@ def convert_markdown(request):
         "task_id": str(task.id),
         "status_url": status_url,
         "download_url": download_url,
+        "output_format": chosen_output,
     }
 
     # Render an HTML confirmation page instead of JSON so users get clickable links
+    context["allowed_outputs"] = allowed_outputs
     return render(request, "md2docx/convert.html", context, status=202)
 
 
@@ -123,6 +156,7 @@ def status(request, task_id):
         "task_id": str(task.id),
         "progress": task.progress,
         "original_filename": task.original_filename,
+        "output_format": task.output_format,
     }
     if task.status == ConversionTask.STATUS_DONE and task.result_file:
         payload["download_url"] = reverse("md2docx:download", args=[task.id])
@@ -140,6 +174,7 @@ def status(request, task_id):
         "status_url": reverse("md2docx:status", args=[task.id]) + "?format=html",
         "download_url": payload.get("download_url"),
         "error_message": payload.get("error"),
+        "output_format": task.output_format,
     }
     return render(request, "md2docx/status.html", context)
 
@@ -153,10 +188,17 @@ def download_docx(request, task_id):
     try:
         task = ConversionTask.objects.get(pk=task_id)
         if task.result_file and task.result_file.name:
-            return FileResponse(task.result_file.open('rb'), as_attachment=True, filename=os.path.basename(task.result_file.name))
+            filename = os.path.basename(task.result_file.name)
+            return FileResponse(task.result_file.open('rb'), as_attachment=True, filename=filename)
+        # fallback path based on requested output_format
+        fallback_ext = task.output_format or 'docx'
+        candidate = EXPORTS_DIR / f"{task_id}.{fallback_ext}"
+        if candidate.exists():
+            return FileResponse(candidate.open('rb'), as_attachment=True, filename=f"{task_id}.{fallback_ext}")
     except ConversionTask.DoesNotExist:
         pass
 
+    # final fallback: legacy .docx path
     docx_path = EXPORTS_DIR / f"{task_id}.docx"
     if not docx_path.exists():
         raise Http404("Document not found. Conversion may still be pending.")
@@ -200,25 +242,42 @@ def api_upload(request):
     or POSTed 'markdown' text. Responds with a task_id and pending status.
     """
     uploaded = request.FILES.get("file")
-    task = ConversionTask.objects.create(status=ConversionTask.STATUS_PENDING)
-    saved_path = None
-    original_name = ""
+    markdown_text = request.POST.get("markdown", "")
 
+    if not uploaded and not markdown_text:
+        return JsonResponse({"error": "No file or markdown provided"}, status=400)
+
+    original_name = getattr(uploaded, 'name', '') if uploaded else ''
+    input_ext = ''
+    if uploaded and '.' in original_name:
+        input_ext = original_name.rsplit('.', 1)[-1].lower()
+    elif uploaded:
+        input_ext = ''
+    else:
+        input_ext = 'md'
+
+    allowed_outputs = get_allowed_outputs(input_ext)
+    chosen_output = request.POST.get('output_format', 'docx').lower()
+    if chosen_output not in allowed_outputs:
+        return JsonResponse({
+            "error": f"Unsupported output format '{chosen_output}' for input type '{input_ext or 'unknown'}'.",
+            "allowed_outputs": allowed_outputs,
+        }, status=400)
+
+    task = ConversionTask.objects.create(status=ConversionTask.STATUS_PENDING, output_format=chosen_output)
+
+    dest_ext = input_ext or 'md'
+    saved_path = None
     if uploaded:
-        original_name = getattr(uploaded, 'name', '')
-        dest = UPLOADS_DIR / f"{task.id}.md"
+        dest = UPLOADS_DIR / f"{task.id}.{dest_ext}"
         with dest.open("wb") as fh:
             for chunk in uploaded.chunks():
                 fh.write(chunk)
         saved_path = str(dest)
     else:
-        markdown_text = request.POST.get("markdown", "")
-        if markdown_text:
-            dest = UPLOADS_DIR / f"{task.id}.md"
-            dest.write_text(markdown_text, encoding="utf-8")
-            saved_path = str(dest)
-        else:
-            return JsonResponse({"error": "No file or markdown provided"}, status=400)
+        dest = UPLOADS_DIR / f"{task.id}.{dest_ext}"
+        dest.write_text(markdown_text, encoding="utf-8")
+        saved_path = str(dest)
 
     task.original_filename = original_name
     task.progress = 0

@@ -23,6 +23,7 @@
       <tr>
         <th>Filename</th>
         <th>Original name</th>
+        <th>Output</th>
         <th>Updated</th>
         <th>Actions</th>
       </tr>
@@ -32,6 +33,7 @@
       <tr>
         <td>{{ task.result_file.name|default:"(none)" }}</td>
         <td>{{ task.original_filename|default:"(uploaded)" }}</td>
+  <td>{{ task.output_format|default:"docx"|upper }}</td>
         <td>{{ task.updated_at }}</td>
         <td>
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">

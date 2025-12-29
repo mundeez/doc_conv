@@ -7,6 +7,7 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 
 from md2docx.models import ConversionTask
+from md2docx.formats import input_reader_for, DEFAULT_OUTPUT
 
 
 MEDIA_ROOT = Path(getattr(settings, 'MEDIA_ROOT', settings.BASE_DIR))
@@ -17,13 +18,21 @@ UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _safe_output_name(task):
+    ext = (task.output_format or DEFAULT_OUTPUT).lstrip('.')
     if task.original_filename:
         stem = Path(task.original_filename).name
         stem = Path(stem).stem
         stem = stem.strip().replace(' ', '_')
         if stem:
-            return f"{stem}.docx"
-    return f"{task.id}.docx"
+            return f"{stem}.{ext}"
+    return f"{task.id}.{ext}"
+
+
+def _find_input_file(task):
+    matches = list(UPLOADS_DIR.glob(f"{task.id}.*"))
+    if matches:
+        return matches[0]
+    return UPLOADS_DIR / f"{task.id}.md"
 
 
 class Command(BaseCommand):
@@ -55,7 +64,9 @@ class Command(BaseCommand):
                     task.progress = 5
                     task.save()
 
-                    md_path = UPLOADS_DIR / f'{task.id}.md'
+                    input_path = _find_input_file(task)
+                    input_ext = input_path.suffix.lstrip('.').lower()
+                    reader = input_reader_for(input_ext)
                     output_filename = _safe_output_name(task)
                     output_path = EXPORTS_DIR / output_filename
 
@@ -63,7 +74,8 @@ class Command(BaseCommand):
                     task.progress = 20
                     task.save()
 
-                    cmd = f"pandoc -o {output_path} -f markdown -t docx {md_path}"
+                    output_fmt = (task.output_format or DEFAULT_OUTPUT).lstrip('.')
+                    cmd = f"pandoc -o {output_path} -f {reader} -t {output_fmt} {input_path}"
                     proc = subprocess.run(cmd, shell=True, capture_output=True, text=True)
 
                     if proc.returncode == 0 and output_path.exists():

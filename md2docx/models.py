@@ -27,6 +27,7 @@ class ConversionTask(models.Model):
 	result_file = models.FileField(upload_to='exports/', null=True, blank=True)
 	error_message = models.TextField(blank=True)
 	original_filename = models.CharField(max_length=255, blank=True)
+	output_format = models.CharField(max_length=32, default='docx')
 	progress = models.IntegerField(default=0)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)

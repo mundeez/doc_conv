@@ -14,6 +14,7 @@ from django.dispatch import receiver
 from django.conf import settings
 
 from .models import ConversionTask
+from .formats import input_reader_for, DEFAULT_OUTPUT
 
 
 MEDIA_ROOT = Path(getattr(settings, 'MEDIA_ROOT', settings.BASE_DIR))
@@ -24,14 +25,25 @@ UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _safe_output_name(task):
-    """Determine output docx filename based on original filename when available."""
+    """Determine output filename based on original filename and desired format."""
+    ext = (task.output_format or DEFAULT_OUTPUT).lstrip('.')
     if task.original_filename:
         stem = Path(task.original_filename).name  # strip any path components
         stem = Path(stem).stem  # drop extension
         stem = stem.strip().replace(' ', '_')
         if stem:
-            return f"{stem}.docx"
-    return f"{task.id}.docx"
+            return f"{stem}.{ext}"
+    return f"{task.id}.{ext}"
+
+
+def _find_input_file(task):
+    """Locate the uploaded input file for a task, regardless of extension."""
+    matches = list(UPLOADS_DIR.glob(f"{task.id}.*"))
+    if matches:
+        # Prefer exact name match (uuid.ext) — only one is expected
+        return matches[0]
+    # fallback to legacy .md path
+    return UPLOADS_DIR / f"{task.id}.md"
 
 
 def _process_task(task_id):
@@ -50,7 +62,9 @@ def _process_task(task_id):
         task.progress = 20
         task.save()
 
-        md_path = UPLOADS_DIR / f'{task.id}.md'
+        input_path = _find_input_file(task)
+        input_ext = input_path.suffix.lstrip('.').lower()
+        reader = input_reader_for(input_ext)
         output_filename = _safe_output_name(task)
         output_path = EXPORTS_DIR / output_filename
 
@@ -59,7 +73,8 @@ def _process_task(task_id):
         task.save()
 
         # Run pandoc
-        cmd = f"pandoc -o {output_path} -f markdown -t docx {md_path}"
+        output_fmt = (task.output_format or DEFAULT_OUTPUT).lstrip('.')
+        cmd = f"pandoc -o {output_path} -f {reader} -t {output_fmt} {input_path}"
         proc = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=60)
 
         if proc.returncode == 0 and output_path.exists():

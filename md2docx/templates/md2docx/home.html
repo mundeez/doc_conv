@@ -1,4 +1,5 @@
 {% extends "md2docx/base.html" %}
+{% load json_script %}
 
 {% block title %}Home — md2docx{% endblock %}
 
@@ -23,8 +24,19 @@
           </div>
 
           <div>
-            <label for="file">Or upload a .md file</label>
-            <input type="file" id="file" name="file" accept=".md,text/markdown">
+            <label for="file">Or upload a file</label>
+            <input type="file" id="file" name="file" accept=".md,.markdown,.docx,.html,.htm,.rtf,.odt,.tex,.epub,.pdf,text/markdown">
+            <p class="muted" style="margin:6px 0 0;">We’ll auto-adjust allowed outputs based on the file extension.</p>
+          </div>
+
+          <div>
+            <label for="output_format">Choose output format</label>
+            <select id="output_format" name="output_format">
+              {% for fmt in default_outputs %}
+                <option value="{{ fmt }}" {% if fmt == 'docx' %}selected{% endif %}>{{ fmt|upper }}</option>
+              {% endfor %}
+            </select>
+            <p class="muted" style="margin:6px 0 0;">Options change when you select a different input file type.</p>
           </div>
 
           <div style="display:flex; gap:10px; align-items:center;">
@@ -32,6 +44,44 @@
             <span class="muted">You’ll get a task ID plus status & download URLs.</span>
           </div>
         </form>
+        {{ supported_outputs|json_script:"supported-outputs-map" }}
+        <script>
+          (() => {
+            const mappingEl = document.getElementById('supported-outputs-map');
+            if (!mappingEl) return;
+            const mapping = JSON.parse(mappingEl.textContent);
+            const fileInput = document.getElementById('file');
+            const select = document.getElementById('output_format');
+            if (!fileInput || !select) return;
+
+            const setOptions = (ext) => {
+              const allowed = mapping[ext] || mapping['md'] || ['docx'];
+              const prev = select.value;
+              select.innerHTML = '';
+              allowed.forEach((fmt) => {
+                const opt = document.createElement('option');
+                opt.value = fmt;
+                opt.textContent = fmt.toUpperCase();
+                select.appendChild(opt);
+              });
+              if (allowed.includes(prev)) {
+                select.value = prev;
+              }
+            };
+
+            fileInput.addEventListener('change', (ev) => {
+              const file = ev.target.files?.[0];
+              if (!file) {
+                setOptions('md');
+                return;
+              }
+              const name = file.name || '';
+              const parts = name.split('.');
+              const ext = parts.length > 1 ? parts.pop().toLowerCase() : 'md';
+              setOptions(ext);
+            });
+          })();
+        </script>
       </div>
 
       <div class="card" style="background:linear-gradient(180deg,#f8fafc,#ffffff);">

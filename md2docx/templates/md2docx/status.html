@@ -23,6 +23,9 @@
     {% if task is mapping %}
       <p style="margin:0;">Task id: <strong>{{ task.task_id }}</strong></p>
       <p style="margin:0;">Status: <strong>{{ task.status }}</strong></p>
+      {% if output_format or task.output_format %}
+        <p style="margin:0;">Output: <strong>{{ output_format|default:task.output_format|upper }}</strong></p>
+      {% endif %}
       <div class="progress-outer">
         <div class="progress-inner" style="width:{{ task.progress|default:0 }}%;"></div>
       </div>
@@ -38,6 +41,9 @@
     {% else %}
       <p style="margin:0;">Task id: <strong>{{ task.id }}</strong></p>
       <p style="margin:0;">Status: <strong>{{ task.status }}</strong></p>
+      {% if task.output_format %}
+        <p style="margin:0;">Output: <strong>{{ task.output_format|upper }}</strong></p>
+      {% endif %}
       <div class="progress-outer">
         <div class="progress-inner" style="width:{{ task.progress|default:0 }}%;"></div>
       </div>

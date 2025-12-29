@@ -13,6 +13,9 @@
     </div>
 
     <p style="margin:0;">Task id: <strong>{{ task_id|default:task }}</strong></p>
+    {% if output_format %}
+      <p style="margin:0;">Output format: <strong>{{ output_format|upper }}</strong></p>
+    {% endif %}
 
     {% if task_id %}
       <a class="btn btn-primary" style="width:max-content;" href="{% url 'md2docx:status' task_id %}?format=html">View status</a>
