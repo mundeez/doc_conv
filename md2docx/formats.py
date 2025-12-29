@@ -34,6 +34,8 @@ INPUT_READERS = {
 
 DEFAULT_OUTPUT = 'docx'
 DEFAULT_INPUT_READER = 'markdown'
+REQUIRED_OUTPUTS = ['docx', 'pdf', 'html', 'odt', 'rtf', 'tex', 'epub']
+REQUIRED_INPUTS = ['markdown', 'docx', 'html', 'rtf', 'odt', 'latex', 'epub']
 
 
 def allowed_outputs(input_ext: str):
