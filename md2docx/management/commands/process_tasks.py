@@ -8,6 +8,7 @@ from django.conf import settings
 
 from md2docx.models import ConversionTask
 from md2docx.formats import input_reader_for, DEFAULT_OUTPUT
+import re
 
 
 MEDIA_ROOT = Path(getattr(settings, 'MEDIA_ROOT', settings.BASE_DIR))
@@ -22,7 +23,8 @@ def _safe_output_name(task):
     if task.original_filename:
         stem = Path(task.original_filename).name
         stem = Path(stem).stem
-        stem = stem.strip().replace(' ', '_')
+        stem = stem.strip()
+        stem = re.sub(r"[^A-Za-z0-9_-]+", '_', stem)
         if stem:
             return f"{stem}.{ext}"
     return f"{task.id}.{ext}"

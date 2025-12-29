@@ -15,6 +15,7 @@ from django.conf import settings
 
 from .models import ConversionTask
 from .formats import input_reader_for, DEFAULT_OUTPUT
+import re
 
 
 MEDIA_ROOT = Path(getattr(settings, 'MEDIA_ROOT', settings.BASE_DIR))
@@ -30,7 +31,9 @@ def _safe_output_name(task):
     if task.original_filename:
         stem = Path(task.original_filename).name  # strip any path components
         stem = Path(stem).stem  # drop extension
-        stem = stem.strip().replace(' ', '_')
+        stem = stem.strip()
+        # sanitize: allow letters, numbers, underscore and hyphen
+        stem = re.sub(r"[^A-Za-z0-9_-]+", '_', stem)
         if stem:
             return f"{stem}.{ext}"
     return f"{task.id}.{ext}"

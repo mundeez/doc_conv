@@ -96,7 +96,11 @@ def convert_markdown(request):
             "task_id": None,
         }, status=400)
 
-    task = ConversionTask.objects.create(status=ConversionTask.STATUS_PENDING, output_format=chosen_output)
+    task = ConversionTask.objects.create(
+        status=ConversionTask.STATUS_PENDING,
+        output_format=chosen_output,
+        original_filename=original_name,
+    )
 
     dest_ext = input_ext or 'md'
     saved_path = None
@@ -114,7 +118,6 @@ def convert_markdown(request):
     # persist metadata
     if saved_path:
         task.input_markdown = ''  # we store file on disk; input_markdown field kept blank
-        task.original_filename = original_name
         task.progress = 0
         task.save()
 
@@ -264,7 +267,11 @@ def api_upload(request):
             "allowed_outputs": allowed_outputs,
         }, status=400)
 
-    task = ConversionTask.objects.create(status=ConversionTask.STATUS_PENDING, output_format=chosen_output)
+    task = ConversionTask.objects.create(
+        status=ConversionTask.STATUS_PENDING,
+        output_format=chosen_output,
+        original_filename=original_name,
+    )
 
     dest_ext = input_ext or 'md'
     saved_path = None
@@ -279,7 +286,6 @@ def api_upload(request):
         dest.write_text(markdown_text, encoding="utf-8")
         saved_path = str(dest)
 
-    task.original_filename = original_name
     task.progress = 0
     task.save()
 
