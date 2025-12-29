@@ -16,6 +16,16 @@ EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 
+def _safe_output_name(task):
+    if task.original_filename:
+        stem = Path(task.original_filename).name
+        stem = Path(stem).stem
+        stem = stem.strip().replace(' ', '_')
+        if stem:
+            return f"{stem}.docx"
+    return f"{task.id}.docx"
+
+
 class Command(BaseCommand):
     help = 'Process pending md2docx ConversionTask entries and run pandoc to produce .docx files.'
 
@@ -46,7 +56,8 @@ class Command(BaseCommand):
                     task.save()
 
                     md_path = UPLOADS_DIR / f'{task.id}.md'
-                    output_path = EXPORTS_DIR / f'{task.id}.docx'
+                    output_filename = _safe_output_name(task)
+                    output_path = EXPORTS_DIR / output_filename
 
                     # mark progress
                     task.progress = 20

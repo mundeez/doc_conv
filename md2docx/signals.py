@@ -23,6 +23,17 @@ EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 
+def _safe_output_name(task):
+    """Determine output docx filename based on original filename when available."""
+    if task.original_filename:
+        stem = Path(task.original_filename).name  # strip any path components
+        stem = Path(stem).stem  # drop extension
+        stem = stem.strip().replace(' ', '_')
+        if stem:
+            return f"{stem}.docx"
+    return f"{task.id}.docx"
+
+
 def _process_task(task_id):
     """Background task processor: convert markdown to docx using pandoc.
 
@@ -40,7 +51,8 @@ def _process_task(task_id):
         task.save()
 
         md_path = UPLOADS_DIR / f'{task.id}.md'
-        output_path = EXPORTS_DIR / f'{task.id}.docx'
+        output_filename = _safe_output_name(task)
+        output_path = EXPORTS_DIR / output_filename
 
         # Update progress
         task.progress = 40
