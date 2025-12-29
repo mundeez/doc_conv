@@ -6,7 +6,7 @@ from django.conf import settings
 from django.http import FileResponse, Http404, JsonResponse, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 from django.views.decorators.csrf import csrf_exempt
 from .views_list_and_api import list_conversions
 from .models import ConversionTask
@@ -163,6 +163,33 @@ def download_docx(request, task_id):
 
     response = FileResponse(open(docx_path, "rb"), as_attachment=True, filename=f"{task_id}.docx")
     return response
+
+
+@require_POST
+def delete_task(request, task_id):
+    """Delete a conversion task and its files, then redirect back to list."""
+    try:
+        task = ConversionTask.objects.get(pk=task_id)
+    except ConversionTask.DoesNotExist:
+        return redirect(reverse("md2docx:list"))
+
+    # Remove output file
+    if task.result_file and task.result_file.name:
+        try:
+            task.result_file.delete(save=False)
+        except Exception:
+            pass
+
+    # Remove uploaded markdown file (if present)
+    upload_path = UPLOADS_DIR / f"{task.id}.md"
+    if upload_path.exists():
+        try:
+            upload_path.unlink()
+        except Exception:
+            pass
+
+    task.delete()
+    return redirect(reverse("md2docx:list"))
 
 
 @require_http_methods(["POST"])

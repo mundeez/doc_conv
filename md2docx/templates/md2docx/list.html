@@ -34,7 +34,13 @@
         <td>{{ task.original_filename|default:"(uploaded)" }}</td>
         <td>{{ task.updated_at }}</td>
         <td>
-          <a class="btn btn-secondary" style="padding:6px 12px; border-radius:8px;" href="{% url 'md2docx:download' task.id %}">Download</a>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <a class="btn btn-secondary" style="padding:6px 12px; border-radius:8px;" href="{% url 'md2docx:download' task.id %}">Download</a>
+            <form method="post" action="{% url 'md2docx:delete' task.id %}" style="margin:0;">
+              {% csrf_token %}
+              <button class="btn" type="submit" style="padding:6px 12px; border-radius:8px; background:#fee2e2; color:#991b1b;">Delete</button>
+            </form>
+          </div>
         </td>
       </tr>
       {% empty %}
