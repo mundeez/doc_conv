@@ -7,9 +7,10 @@ services:
       - "8000:8000"
     environment:
       DJANGO_SETTINGS_MODULE: doc_conv.settings
-      PANDOC_BIN: pandoc
+      PANDOC_BIN: ./scripts/pandoc_docker.sh
     volumes:
       - .:/app
       - ./uploads:/app/uploads
       - ./exports:/app/exports
+      - /var/run/docker.sock:/var/run/docker.sock
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"

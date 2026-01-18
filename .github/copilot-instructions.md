@@ -38,8 +38,8 @@ python manage.py runserver
 ## Docker / Compose
 - Build & run dev stack: `docker compose up --build`
 - Web listens on `http://localhost:8000`; volumes mount `./uploads` and `./exports` for persistence.
-- Pandoc binary can be overridden via `PANDOC_BIN` env (e.g., point to a wrapper that runs `docker run --rm pandoc/core ...`).
-  - Example wrapper: set `PANDOC_BIN=./scripts/pandoc_docker.sh` (runs `docker run --rm -v "$PWD":/data -w /data pandoc/core:3.1 ...`).
+- Default `PANDOC_BIN=./scripts/pandoc_docker.sh` (compose) — runs pandoc inside `pandoc/core:3.1` via Docker; requires host Docker socket mounted (`/var/run/docker.sock`).
+- To use native pandoc instead, set `PANDOC_BIN=pandoc` in compose or env.
 
 
 ## API / UX snippets

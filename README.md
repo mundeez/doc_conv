@@ -59,7 +59,8 @@ docker compose up --build
 
 - Web: http://localhost:8000
 - Volumes: `./uploads` and `./exports` are mounted for persistence.
-- Override pandoc via env: `PANDOC_BIN=./scripts/pandoc_docker.sh` (wrapper that runs `docker run --rm -v "$PWD":/data -w /data pandoc/core:3.1 ...`).
+- Default (compose): `PANDOC_BIN=./scripts/pandoc_docker.sh` to run pandoc inside `pandoc/core:3.1` via Docker. Requires host Docker socket mounted at `/var/run/docker.sock` (already mounted in compose).
+- To use native pandoc instead, set `PANDOC_BIN=pandoc`.
 
 ## Usage
 

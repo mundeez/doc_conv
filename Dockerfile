@@ -6,9 +6,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Install system deps (pandoc for conversions)
+# Install system deps (pandoc for conversions, docker client for wrapper)
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends pandoc \
+    && apt-get install -y --no-install-recommends pandoc docker.io \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python deps
@@ -18,6 +18,9 @@ RUN python -m pip install --upgrade pip \
 
 # Copy project
 COPY . .
+
+# Ensure wrapper is executable (for PANDOC_BIN)
+RUN chmod +x scripts/pandoc_docker.sh
 
 EXPOSE 8000
 
