@@ -24,6 +24,9 @@ UPLOADS_DIR = MEDIA_ROOT / 'uploads'
 EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
+# Allow overriding pandoc binary/command (e.g., dockerized pandoc wrapper)
+PANDOC_BIN = os.getenv('PANDOC_BIN', 'pandoc')
+
 
 def _safe_output_name(task):
     """Determine output filename based on original filename and desired format."""
@@ -80,7 +83,7 @@ def _process_task(task_id):
 
         def _pandoc_command(inp, outp, reader_name, fmt):
             cmd = [
-                'pandoc',
+                PANDOC_BIN,
                 '-o', str(outp),
                 '-f', reader_name,
                 '-t', fmt,

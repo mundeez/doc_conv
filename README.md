@@ -51,6 +51,16 @@ python manage.py runserver
 
 Visit http://localhost:8000/md2docx/
 
+### Docker / Compose
+
+```bash
+docker compose up --build
+```
+
+- Web: http://localhost:8000
+- Volumes: `./uploads` and `./exports` are mounted for persistence.
+- Override pandoc via env: `PANDOC_BIN=./scripts/pandoc_docker.sh` (wrapper that runs `docker run --rm -v "$PWD":/data -w /data pandoc/core:3.1 ...`).
+
 ## Usage
 
 ### Web Interface

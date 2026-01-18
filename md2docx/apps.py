@@ -20,10 +20,13 @@ class Md2DocxConfig(AppConfig):
     def _check_pandoc_capabilities(self):
         """Log warnings if pandoc or pdf engine is unavailable."""
         from .formats import REQUIRED_OUTPUTS, REQUIRED_INPUTS
+        import os
+
+        pandoc_bin = os.getenv('PANDOC_BIN', 'pandoc')
 
         try:
             out = subprocess.run(
-                ['pandoc', '--list-output-formats'],
+                [pandoc_bin, '--list-output-formats'],
                 capture_output=True,
                 text=True,
                 check=True,
@@ -40,7 +43,7 @@ class Md2DocxConfig(AppConfig):
 
         try:
             out = subprocess.run(
-                ['pandoc', '--list-input-formats'],
+                [pandoc_bin, '--list-input-formats'],
                 capture_output=True,
                 text=True,
                 check=True,

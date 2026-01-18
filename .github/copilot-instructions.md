@@ -35,6 +35,13 @@ python manage.py test
 python manage.py runserver
 ```
 
+## Docker / Compose
+- Build & run dev stack: `docker compose up --build`
+- Web listens on `http://localhost:8000`; volumes mount `./uploads` and `./exports` for persistence.
+- Pandoc binary can be overridden via `PANDOC_BIN` env (e.g., point to a wrapper that runs `docker run --rm pandoc/core ...`).
+  - Example wrapper: set `PANDOC_BIN=./scripts/pandoc_docker.sh` (runs `docker run --rm -v "$PWD":/data -w /data pandoc/core:3.1 ...`).
+
+
 ## API / UX snippets
 - Upload via API (multipart): `curl -F "file=@example.md" -F "output_format=docx" http://localhost:8000/md2docx/api/upload/`
 - Status polling: `curl http://localhost:8000/md2docx/status/<uuid>/`
