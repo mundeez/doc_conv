@@ -9,6 +9,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      PIP_CACHE_DIR: ~/.cache/pip
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,6 +19,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PIP_CACHE_DIR }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-ruff-0.14.13
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install system dependencies (pandoc)
         run: |
@@ -30,7 +40,7 @@ jobs:
 
       - name: Install linting tools
         run: |
-          pip install ruff
+          pip install ruff==0.14.13
 
       - name: Lint (ruff)
         run: |

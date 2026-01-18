@@ -4,7 +4,6 @@ Automatically process ConversionTask entries when created using Django signals.
 This keeps the view non-blocking while still handling conversion in the background.
 """
 import threading
-import time
 import subprocess
 import os
 from pathlib import Path

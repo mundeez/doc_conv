@@ -1,6 +1,4 @@
-from django.shortcuts import render
 import os
-import uuid
 from pathlib import Path
 from django.conf import settings
 from django.http import FileResponse, Http404, JsonResponse, HttpResponse
@@ -8,9 +6,12 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods, require_POST
 from django.views.decorators.csrf import csrf_exempt
-from .views_list_and_api import list_conversions
+from . import views_list_and_api as _list_api
 from .models import ConversionTask
 from .formats import SUPPORTED_OUTPUTS, allowed_outputs as get_allowed_outputs
+
+# re-export for urls.py
+list_conversions = _list_api.list_conversions
 
 # Create your views here.
 # Minimal, importable view stubs for md2docx.urls

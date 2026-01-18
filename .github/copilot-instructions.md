@@ -68,7 +68,7 @@ class StatusViewTests(TestCase):
 - If you add new commands/endpoints, document them here and/or in `README.md`.
 
 ## CI (GitHub Actions)
-- Workflow: `.github/workflows/ci.yml` (Python 3.11). Steps: checkout → install Python → `apt-get install pandoc` → `pip install -r requirements.txt` → `pip install ruff` → `ruff check .` → `python manage.py test`.
+- Workflow: `.github/workflows/ci.yml` (Python 3.11). Steps: checkout → pip cache restore → install Python → `apt-get install pandoc` → `pip install -r requirements.txt` → `pip install ruff==0.14.13` → `ruff check .` → `python manage.py test`.
 - If you add deps or commands, update the workflow and this file.
 
 ## Safety constraints

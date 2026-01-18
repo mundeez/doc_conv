@@ -263,10 +263,10 @@ python manage.py process_tasks
    - Track failed task rates
 
 ## Contributing
-
 1. Create a new branch: `git checkout -b feature/my-feature`
-2. Make changes and run tests: `python manage.py test md2docx`
-3. Submit pull request
+2. Install deps and lint: `pip install -r requirements.txt && pip install ruff==0.14.13 && ruff check .`
+3. Run tests: `python manage.py test md2docx`
+4. Submit pull request
 
 ## License
 

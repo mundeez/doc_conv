@@ -24,6 +24,15 @@ class Md2DocxConfig(AppConfig):
 
         pandoc_bin = os.getenv('PANDOC_BIN', 'pandoc')
 
+        # If using the docker wrapper, skip capability check to avoid noisy failures
+        # when Docker is unavailable in the current environment.
+        if 'pandoc_docker.sh' in pandoc_bin:
+            logger.info(
+                "Skipping pandoc capability check (PANDOC_BIN uses docker wrapper): %s",
+                pandoc_bin,
+            )
+            return
+
         try:
             out = subprocess.run(
                 [pandoc_bin, '--list-output-formats'],
