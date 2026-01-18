@@ -1,3 +1,120 @@
+<!-- Short, actionable instructions for AI coding agents working in this repo -->
+# Copilot instructions — doc_conv
+
+Concise, discoverable patterns to be productive quickly. Keep edits small, aligned with existing behavior.
+
+## Big picture
+- Django project with single app `md2docx`: converts uploaded/pasted Markdown → DOCX (and PDF/other outputs supported by pandoc readers/writers).
+- Views create `ConversionTask` rows (UUID PK, status/progress). A `post_save` signal spawns a daemon thread to run `pandoc`, writing outputs to `MEDIA_ROOT/exports/`.
+- Files: uploads to `MEDIA_ROOT/uploads/<uuid>.<ext>`; outputs to `MEDIA_ROOT/exports/<uuid or sanitized name>.<ext>`. Fallback to `BASE_DIR` when `MEDIA_ROOT` missing.
+
+## Key files
+- `md2docx/models.py` — `ConversionTask` (UUID id, status pending/processing/done/failed, progress, result_file, error_message, output_format, original_filename).
+- `md2docx/views.py` — UI/API: `home`, `convert_markdown`, `status`, `download_docx`, `delete_task`, `api_upload`.
+- `md2docx/signals.py` — `post_save` handler starts background thread `_process_task` (pandoc subprocess; progress 20/40/100; skips when DB name contains "test").
+- `md2docx/views_list_and_api.py` — `list_conversions` paginated (10/25/50 per page; shows done tasks).
+- `md2docx/apps.py` — imports signals in `ready()`; best-effort pandoc capability check (logs warnings, non-fatal).
+- `md2docx/management/commands/process_tasks.py` — optional CLI worker instead of signals (polling loop / --once).
+
+## Conventions & gotchas
+- Treat task IDs as UUID strings; URL converters use `<uuid:task_id>`.
+- Always include `progress` and `status` in status responses; add `download_url` when done, `error` when failed.
+- Sanitized output names: signals use original filename stem when safe; otherwise `<uuid>.<ext>`.
+- Test DBs: signal processing is skipped (name contains `test`), so tests won't spawn pandoc threads.
+- Default output format is `docx`; `output_format` is stored on the task.
+
+## Run & test locally
+```bash
+pip install -r requirements.txt
+sudo apt install pandoc            # or brew install pandoc (macOS)
+python manage.py makemigrations
+python manage.py migrate
+pip install ruff                   # linting (local/dev)
+ruff check .
+python manage.py test
+python manage.py runserver
+```
+
+## API / UX snippets
+- Upload via API (multipart): `curl -F "file=@example.md" -F "output_format=docx" http://localhost:8000/md2docx/api/upload/`
+- Status polling: `curl http://localhost:8000/md2docx/status/<uuid>/`
+- Render status as HTML: `GET /md2docx/status/<uuid>/?format=html`
+- Download: `GET /md2docx/download/<uuid>/`
+
+## Minimal test template (Django TestCase)
+```python
+from django.test import TestCase
+from django.urls import reverse
+
+class StatusViewTests(TestCase):
+    def test_status_pending(self):
+        resp = self.client.get(reverse('md2docx:status', args=['00000000-0000-0000-0000-000000000000']))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()['status'], 'pending')
+```
+
+## Contributor checklist (pre-PR)
+- Format not enforced; keep style consistent with existing files.
+- Ensure pandoc is available locally if touching conversion logic.
+- Lint: `ruff check .`
+- Run tests: `python manage.py test` (signals are skipped in tests, so no pandoc needed for unit tests).
+- If you add new commands/endpoints, document them here and/or in `README.md`.
+
+## CI (GitHub Actions)
+- Workflow: `.github/workflows/ci.yml` (Python 3.11). Steps: checkout → install Python → `apt-get install pandoc` → `pip install -r requirements.txt` → `pip install ruff` → `ruff check .` → `python manage.py test`.
+- If you add deps or commands, update the workflow and this file.
+
+## Safety constraints
+- `doc_conv/settings.py` has hard-coded `SECRET_KEY`, `DEBUG=True` for dev. Do not add production secrets; prefer env vars if adjusting.
+- CSRF is exempt on `/api/upload/`; keep UUID task IDs and validations intact when modifying API.
+
+## Debug tips
+- Inspect `uploads/` and `exports/` paths under `MEDIA_ROOT` (or project root fallback).
+- Signal failures write `error_message` on the task; see `md2docx/signals.py` pandoc stderr/stdout handling.
+
+If you need more depth (e.g., extending tests, PDF defaults, or CLI worker usage), ask to expand the relevant section.<!-- Short, actionable instructions for AI coding agents working on this repo -->
+# Copilot instructions — doc_conv (condensed)
+
+This file contains only the immediately useful, discoverable rules and patterns for making small, safe changes to the repository.
+
+## Big picture (one paragraph)
+- Small Django app `doc_conv` with a single app `md2docx` that converts Markdown → DOCX.
+- Views create `ConversionTask` DB rows (UUID primary key). A `post_save` signal spawns a daemon thread to run `pandoc` and write outputs to `MEDIA_ROOT/exports/`.
+
+## Key files (quick map)
+- `md2docx/models.py` — `ConversionTask` (UUID id, status, progress, result_file, error_message).
+- `md2docx/views.py` — UI + API endpoints: `home`, `convert_markdown`, `status`, `download_docx`, `delete_task`, `api_upload`.
+- `md2docx/signals.py` — `post_save` handler that starts `_process_task` in a background thread; uses `pandoc` via subprocess.
+- `md2docx/apps.py` — imports signals in `ready()` and does a best-effort pandoc capability check.
+- `md2docx/views_list_and_api.py` — paginated `list_conversions` (10/25/50 per page).
+
+## Patterns & conventions agents must follow
+- Task lifecycle: views create a `ConversionTask` with status `pending`; signal processing will set `processing/done/failed` and update `progress` (20/40/100).
+- Files: uploads → `MEDIA_ROOT/uploads/<uuid>.<ext>`; outputs → `MEDIA_ROOT/exports/<uuid>.<ext>` (or sanitized original filename). Use `settings.MEDIA_ROOT` fallback to `BASE_DIR` when reading/writing files.
+- Identifiers: always treat task IDs as UUID strings (URL converters use `<uuid:task_id>`).
+- Tests: signal processing is skipped for SQLite test DBs (signals check for 'test' in DB name). Tests can be run with `python manage.py test`.
+
+## How to run locally (exact commands)
+1. Install deps: `pip install -r requirements.txt`
+2. Ensure pandoc is installed (system package). Example: `sudo apt install pandoc`.
+3. Migrate and run server:
+   - `python manage.py makemigrations`
+   - `python manage.py migrate`
+   - `python manage.py runserver`
+
+## Quick examples for agents making edits
+- Adding/changes to status API: return at minimum `{"status": "pending|processing|done|failed", "task_id": "<uuid>"}` and include `progress` when available. See `md2docx/views.py::status`.
+- When changing background behavior, prefer adding or updating `management/commands/process_tasks.py` (CLI worker) rather than altering signal threading logic — signals are the default production-suitable approach here.
+
+## Safety & repo constraints
+- `doc_conv/settings.py` contains a hard-coded SECRET_KEY and `DEBUG = True`. Do not commit production secrets—use env-based changes only if you also update docs here.
+- No CI is present. If adding checks, document how to run them locally in this file.
+
+## Where to look next (when stuck)
+- Reproduce conversions by creating a `ConversionTask` via `api_upload` or `convert_markdown` then inspect `uploads/` and `exports/` directories.
+- Check `md2docx/signals.py` for pandoc command and error messages (the signal writes `error_message` on failure).
+
+If any part of this condensed guide is unclear or you want a longer, example-rich version (templates, test snippets, or CI commands), tell me which section to expand and I will iterate.
 <!-- Instructions for AI coding agents working in this repository -->
 # Copilot instructions for doc_conv
 
