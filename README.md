@@ -59,7 +59,7 @@ docker compose up --build
 
 - Web: http://localhost:8000
 - Volumes: `./uploads` and `./exports` are mounted for persistence.
-- Default (compose): `PANDOC_BIN=./scripts/pandoc_docker.sh` to run pandoc inside `pandoc/core:3.1` via Docker. Requires host Docker socket mounted at `/var/run/docker.sock` **and** host docker client mounted at `/usr/bin/docker` (compose mounts both).
+- Default (compose): `PANDOC_BIN=./scripts/pandoc_docker.sh` to run pandoc inside `pandoc/core:3.1` via Docker. Requires host Docker socket (`/var/run/docker.sock`), host docker client mounted at `/usr/bin/docker`, **and** `PANDOC_ROOT` pointing to the host project path (compose sets `PANDOC_ROOT=${PWD}`).
 - To use native pandoc instead, set `PANDOC_BIN=pandoc`.
 
 ## Usage

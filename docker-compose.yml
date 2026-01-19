@@ -6,6 +6,7 @@ services:
     environment:
       DJANGO_SETTINGS_MODULE: doc_conv.settings
       PANDOC_BIN: ./scripts/pandoc_docker.sh
+      PANDOC_ROOT: ${PWD}
       DJANGO_ALLOWED_HOSTS: 127.0.0.1,localhost,testserver,159.69.31.58
     volumes:
       - .:/app

@@ -8,7 +8,8 @@ set -euo pipefail
 IMAGE="${PANDOC_IMAGE:-pandoc/core:3.1}"
 ROOT="${PANDOC_ROOT:-$(pwd)}"
 
+# Mount project root at /app so absolute paths like /app/uploads/... remain valid.
 exec docker run --rm \
-  -v "${ROOT}":/data \
-  -w /data \
+  -v "${ROOT}":/app \
+  -w /app \
   "${IMAGE}" "$@"
