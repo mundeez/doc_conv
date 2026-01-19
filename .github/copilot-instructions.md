@@ -38,7 +38,7 @@ python manage.py runserver
 ## Docker / Compose
 - Build & run dev stack: `docker compose up --build`
 - Web listens on `http://localhost:8000`; volumes mount `./uploads` and `./exports` for persistence.
-- Default `PANDOC_BIN=./scripts/pandoc_docker.sh` (compose) — runs pandoc inside `pandoc/core:3.1` via Docker; requires host Docker socket mounted (`/var/run/docker.sock`).
+- Default `PANDOC_BIN=./scripts/pandoc_docker.sh` (compose) — runs pandoc inside `pandoc/core:3.1` via Docker; requires host Docker socket (`/var/run/docker.sock`) and docker client binary mounted (`/usr/bin/docker`).
 - To use native pandoc instead, set `PANDOC_BIN=pandoc` in compose or env.
 
 

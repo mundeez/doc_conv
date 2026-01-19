@@ -6,9 +6,11 @@ services:
     environment:
       DJANGO_SETTINGS_MODULE: doc_conv.settings
       PANDOC_BIN: ./scripts/pandoc_docker.sh
+      DJANGO_ALLOWED_HOSTS: 127.0.0.1,localhost,testserver,159.69.31.58
     volumes:
       - .:/app
       - ./uploads:/app/uploads
       - ./exports:/app/exports
       - /var/run/docker.sock:/var/run/docker.sock
-    command: sh -c "docker --version && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+      - /usr/bin/docker:/usr/bin/docker:ro
+    command: sh -c "if command -v docker >/dev/null 2>&1; then docker --version; else echo 'docker not available in container; ensure socket and client if using dockerized pandoc'; fi; python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
